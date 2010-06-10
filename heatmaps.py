@@ -22,12 +22,8 @@ def main():
     print "Background image \"" + options.log + "\" not found."
     exit(-1)
 
-  parselog(options.log)
-
 def parselog(logfile):
-  parsed = {}
-  
-  file f = open(logfile)
+  f = open(logfile)
 
   xmin = float(f.readline().split(":")[1])
   ymin = float(f.readline().split(":")[1])
@@ -38,5 +34,20 @@ def parselog(logfile):
 
   f.readline() # Not used except by puny humans
 
+  coords = []
+  for line in f:
+    splits = line.split(" , ")
+    coords.append(tuple(map(float, splits)))
+
+  parsed = { "xmin": xmin,
+             "xmax": xmax,
+             "ymin": ymin,
+             "ymax": ymax,
+             "zmin": zmin,
+             "zmax": zmax,
+             "coords": coords }
+
+  return parsed
+    
 if __name__ == '__main__':
   main()
