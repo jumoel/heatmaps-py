@@ -2,6 +2,8 @@
 
 import optparse
 import os
+import Image # http://www.pythonware.com/products/pil/
+from numpy import zeros # http://numpy.scipy.org/
          
 def main():
   p = optparse.OptionParser()
@@ -21,6 +23,11 @@ def main():
   if not os.path.exists(options.background):
     print "Background image \"" + options.log + "\" not found."
     exit(-1)
+
+  heatmap(options.log, options.background)
+
+def lerp(a, b, t):
+  return a + (b - a) * t
 
 def parselog(logfile):
   f = open(logfile)
@@ -48,6 +55,18 @@ def parselog(logfile):
              "coords": coords }
 
   return parsed
+
+def heatmap(logfile, background):
+  parsed = parselog(logfile)
+
+  image = Image.open(background)
+
+  width, height = image.size
+
+  hmap = zeros((width, height))
+
+  for t in parsed["coords"]:
+    # do stuff
     
 if __name__ == '__main__':
   main()
