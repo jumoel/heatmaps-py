@@ -3,12 +3,14 @@
 import optparse
 import os
 import Image # http://www.pythonware.com/products/pil/
-from numpy import zeros # http://numpy.scipy.org/
-         
+import ImageChops
+import math
+
 def main():
   p = optparse.OptionParser()
   p.add_option('--background', '-b', help='Background image')
   p.add_option('--log', '-l', help='Log file')
+  p.add_option('--dotsize', '-d', help="Size of the dots to place on the heatmap")
   options, arguments = p.parse_args()
 
   if options.log is None or options.background is None:
@@ -24,10 +26,18 @@ def main():
     print "Background image \"" + options.log + "\" not found."
     exit(-1)
 
-  heatmap(options.log, options.background)
+  heatmap(options.log, options.background, options.dotsize)
 
 def lerp(a, b, t):
   return a + (b - a) * t
+
+def clamp(x, xmin, xmax):
+  if x < xmin:
+    return xmin
+  elif x > xmax:
+    return xmax
+  else:
+    return x
 
 def parselog(logfile):
   f = open(logfile)
@@ -56,17 +66,63 @@ def parselog(logfile):
 
   return parsed
 
-def heatmap(logfile, background):
+# http://sol.gfxile.net/interpolation/
+def smoothstep(x):
+  return (x) * (x) * (3 - 2 * (x))
+
+def smooth(x):
+  return smoothstep(x)
+
+# Generate a dot for a point in the heatmap
+def gendot(size):
+  img = Image.new("RGB", (size, size), "white")
+  
+  middle = size / 2
+  maxdist = size / 2
+
+  for x in range(size):
+    for y in range(size):
+      xx = x - middle
+      yy = y - middle
+
+      dist = clamp(math.sqrt(xx**2 + yy**2), 0, maxdist)
+      
+      rgb = int(round(smooth(dist/(size/2)) * 255 + 50))
+
+      img.putpixel((x, y), (rgb, rgb, rgb))
+
+  img.save("dot.png")
+
+  return img
+
+def heatmap(logfile, background, dotsize):
   parsed = parselog(logfile)
 
   image = Image.open(background)
 
   width, height = image.size
 
-  hmap = zeros((width, height))
+  xmin = parsed["xmin"]
+  zmin = parsed["zmin"]
+  xgrid = (parsed["xmax"] - xmin) / width
+  zgrid = (parsed["zmax"] - zmin) / height
 
+  heatimage = Image.new("RGBA", image.size, "white")
+  dot = gendot(dotsize)
+
+  # Parse the log and set heatmap
   for t in parsed["coords"]:
-    # do stuff
-    
+    x = int(round((t[0] - xmin) / xgrid))
+    z = int(round((t[2] - zmin) / zgrid))
+    x = int(round(x - dotsize / 2))
+    z = int(round(z - dotsize / 2))
+
+    tempimg = Image.new("RGBA", image.size, "white")
+    tempimg.paste(dot, (x, z))
+
+    heatimage = ImageChops.multiply(heatimage, tempimg)
+
+  heatimage.save("heatimage.png")
+
 if __name__ == '__main__':
   main()
