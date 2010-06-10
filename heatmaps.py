@@ -25,8 +25,18 @@ def main():
   parselog(options.log)
 
 def parselog(logfile):
-  print logfile
+  parsed = {}
+  
+  file f = open(logfile)
 
+  xmin = float(f.readline().split(":")[1])
+  ymin = float(f.readline().split(":")[1])
+  zmin = float(f.readline().split(":")[1])
+  xmax = float(f.readline().split(":")[1])
+  ymax = float(f.readline().split(":")[1])
+  zmax = float(f.readline().split(":")[1])
+
+  f.readline() # Not used except by puny humans
 
 if __name__ == '__main__':
   main()
