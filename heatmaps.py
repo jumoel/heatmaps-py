@@ -5,12 +5,16 @@ import os
 import Image # http://www.pythonware.com/products/pil/
 import ImageChops
 import math
+from numpy import *
+
+import cProfile
 
 def main():
   p = optparse.OptionParser()
   p.add_option('--background', '-b', help='Background image')
   p.add_option('--log', '-l', help='Log file')
-  p.add_option('--dotsize', '-d', help="Size of the dots to place on the heatmap")
+  p.add_option('--dotsize', '-d', help="Size of the dots to place on the heatmap", default=15)
+  p.add_option('--every', '-e', help="Parse every X log entries", default = 100)
   options, arguments = p.parse_args()
 
   if options.log is None or options.background is None:
@@ -26,7 +30,7 @@ def main():
     print "Background image \"" + options.log + "\" not found."
     exit(-1)
 
-  heatmap(options.log, options.background, options.dotsize)
+  heatmap(options.log, options.background, int(options.dotsize), int(options.every))
 
 def lerp(a, b, t):
   return a + (b - a) * t
@@ -71,7 +75,7 @@ def smoothstep(x):
   return (x) * (x) * (3 - 2 * (x))
 
 def smooth(x):
-  return smoothstep(x)
+  return x #smoothstep(x)
 
 # Generate a dot for a point in the heatmap
 def gendot(size):
@@ -87,7 +91,7 @@ def gendot(size):
 
       dist = clamp(math.sqrt(xx**2 + yy**2), 0, maxdist)
       
-      rgb = int(round(smooth(dist/(size/2)) * 255 + 50))
+      rgb = int(clamp(round(smooth(dist/(size/2)) * 255), 100, 255))
 
       img.putpixel((x, y), (rgb, rgb, rgb))
 
@@ -95,7 +99,7 @@ def gendot(size):
 
   return img
 
-def heatmap(logfile, background, dotsize):
+def heatmap(logfile, background, dotsize, every):
   parsed = parselog(logfile)
 
   image = Image.open(background)
@@ -109,20 +113,36 @@ def heatmap(logfile, background, dotsize):
 
   heatimage = Image.new("RGBA", image.size, "white")
   dot = gendot(dotsize)
+  tmptmp = Image.new("RGBA", image.size, "white")
+  #heatarr = asarray(heatimage).astype("float")
+
+  i = 1
 
   # Parse the log and set heatmap
   for t in parsed["coords"]:
-    x = int(round((t[0] - xmin) / xgrid))
-    z = int(round((t[2] - zmin) / zgrid))
-    x = int(round(x - dotsize / 2))
-    z = int(round(z - dotsize / 2))
+    if i % every == 0:
+      x = int(round((t[0] - xmin) / xgrid))
+      z = int(round((t[2] - zmin) / zgrid))
+      x = int(round(x - dotsize / 2))
+      z = int(round(z - dotsize / 2))
+    
+      tempimg = Image.new("RGBA", image.size, "white")
+      tempimg.paste(dot, (x, z))
+    
+      tmptmp = ImageChops.multiply(tmptmp, tempimg)
 
-    tempimg = Image.new("RGBA", image.size, "white")
-    tempimg.paste(dot, (x, z))
+    i = (i + 1) % every
 
-    heatimage = ImageChops.multiply(heatimage, tempimg)
-
+    #temparr = asarray(tempimg).astype("float")
+    
+    #heatimage = ImageChops.multiply(heatimage, tempimg)
+    #heatarr = heatarr + temparr;
+    
+ # heatimage = Image.fromarray(heatarr)
+  heatimage = ImageChops.multiply(heatimage, tmptmp)
   heatimage.save("heatimage.png")
 
 if __name__ == '__main__':
+  #psyco.full()
+  #cProfile.run("main()", "benchmark.txt")
   main()
