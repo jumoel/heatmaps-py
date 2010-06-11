@@ -31,7 +31,7 @@ def main():
     print "Background image \"" + options.log + "\" not found."
     exit(-1)
 
-  heatmap(options.log, options.background, int(options.dotsize), int(options.every))
+  heatmap(options.log, options.background, int(options.dotsize), int(options.every), int(options.dotmin))
 
 def lerp(a, b, t):
   return a + (b - a) * t
@@ -141,7 +141,7 @@ def heatmap(logfile, background, dotsize, every, minvalue):
     
  # heatimage = Image.fromarray(heatarr)
   heatimage = ImageChops.multiply(heatimage, tmptmp)
-  heatimage.save("heatimage.png")
+  heatimage.save(logfile + ".png")
 
 if __name__ == '__main__':
   #psyco.full()
