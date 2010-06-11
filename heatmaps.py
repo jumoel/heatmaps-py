@@ -15,6 +15,7 @@ def main():
   p.add_option('--log', '-l', help='Log file')
   p.add_option('--dotsize', '-d', help="Size of the dots to place on the heatmap", default=15)
   p.add_option('--every', '-e', help="Parse every X log entries", default = 100)
+  p.add_option('--dotmin', '-n', help="The minimum value for the dot color", default = 0)
   options, arguments = p.parse_args()
 
   if options.log is None or options.background is None:
@@ -78,7 +79,7 @@ def smooth(x):
   return x #smoothstep(x)
 
 # Generate a dot for a point in the heatmap
-def gendot(size):
+def gendot(size, minvalue):
   img = Image.new("RGB", (size, size), "white")
   
   middle = size / 2
@@ -91,7 +92,7 @@ def gendot(size):
 
       dist = clamp(math.sqrt(xx**2 + yy**2), 0, maxdist)
       
-      rgb = int(clamp(round(smooth(dist/(size/2)) * 255), 100, 255))
+      rgb = int(clamp(round(smooth(dist/(size/2)) * 255), minvalue, 255))
 
       img.putpixel((x, y), (rgb, rgb, rgb))
 
@@ -99,7 +100,7 @@ def gendot(size):
 
   return img
 
-def heatmap(logfile, background, dotsize, every):
+def heatmap(logfile, background, dotsize, every, minvalue):
   parsed = parselog(logfile)
 
   image = Image.open(background)
@@ -112,7 +113,7 @@ def heatmap(logfile, background, dotsize, every):
   zgrid = (parsed["zmax"] - zmin) / height
 
   heatimage = Image.new("RGBA", image.size, "white")
-  dot = gendot(dotsize)
+  dot = gendot(dotsize, minvalue)
   tmptmp = Image.new("RGBA", image.size, "white")
   #heatarr = asarray(heatimage).astype("float")
 
