@@ -10,11 +10,9 @@ import locale
 
 import cProfile
 
-dir = ""
+dir = os.path.dirname(os.path.abspath(__file__))
 
 def main():
-  dir = os.path.dirname(os.path.abspath(__file__))
-
   p = optparse.OptionParser()
   p.add_option('--background', '-b', help='Background image', default = dir + "\\whitedemo.png")
   p.add_option('--log', '-l', help='Log file')
