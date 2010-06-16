@@ -29,7 +29,7 @@ def main():
     print "Log file \"" + options.log + "\" not found."
     exit(-1)
     
-  if not os.path.exists(options.background):
+  if not options.background == "whitedemo.png" and os.path.exists(options.background):
     print "Background image \"" + options.log + "\" not found."
     exit(-1)
 
