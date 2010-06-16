@@ -12,29 +12,33 @@ import cProfile
 
 def main():
   p = optparse.OptionParser()
-  p.add_option('--background', '-b', help='Background image')
+  p.add_option('--background', '-b', help='Background image', default = "whitedemo.png")
   p.add_option('--log', '-l', help='Log file')
   p.add_option('--dotsize', '-d', help="Size of the dots to place on the heatmap", default=15)
   p.add_option('--every', '-e', help="Parse every X log entries", default = 1)
   p.add_option('--dotmin', '-n', help="The minimum value for the dot color", default = 0)
+  p.add_option('--death', '-q', action="store_true", dest="death", default = False)
   options, arguments = p.parse_args()
 
-  if options.log is None or options.background is None:
-    print "Both background and log are mandatory\n"
+  if options.log is None:
+    print "Log is mandatory\n"
     p.print_help()
     exit(-1)
 
   if not os.path.exists(options.log):
     print "Log file \"" + options.log + "\" not found."
     exit(-1)
-
+    
   if not os.path.exists(options.background):
     print "Background image \"" + options.log + "\" not found."
     exit(-1)
 
   locale.setlocale(locale.LC_ALL, '')
 
-  heatmap(options.log, options.background, int(options.dotsize), int(options.every), int(options.dotmin))
+  if not options.death:
+    heatmap(options.log, options.background, int(options.dotsize), int(options.every), int(options.dotmin))
+  else:
+    deathmap(options.log, options.background, int(options.dotsize))
 
 def lerp(t, a, b):
   return a + (b - a) * t
@@ -102,6 +106,36 @@ def gendot(size, minvalue):
   img.save("dot.png")
 
   return img
+
+def gendeathdot(dotsize):
+  img = Image.open("skull.png")
+
+  return img.resize((dotsize, dotsize))
+
+def deathmap(logfile, background, dotsize):
+  parsed = parselog(logfile)
+
+  image = Image.open(background)
+
+  width, height = image.size
+
+  xmin = parsed["xmin"]
+  zmin = parsed["zmin"]
+  xgrid = (parsed["xmax"] - xmin) / width
+  zgrid = (parsed["zmax"] - zmin) / height
+
+  heatimage = Image.new("RGBA", image.size, (255, 255, 255, 0))
+  dot = gendeathdot(dotsize)
+
+  for t in parsed["coords"]:
+    x = int(round((t[0] - xmin) / xgrid))
+    z = int(round((t[2] - zmin) / zgrid))
+    x = int(round(x - dotsize / 2))
+    z = int(round(z - dotsize / 2))
+
+    heatimage.paste(dot, (x, z))
+
+  heatimage.save(logfile + ".png")
 
 def heatmap(logfile, background, dotsize, every, minvalue):
   parsed = parselog(logfile)
