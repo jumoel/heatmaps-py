@@ -11,9 +11,10 @@ import locale
 import cProfile
 
 def main():
-  print os.path.dirname(os.path.abspath(__file__))
+  dir = os.path.dirname(os.path.abspath(__file__))
+
   p = optparse.OptionParser()
-  p.add_option('--background', '-b', help='Background image', default = "whitedemo.png")
+  p.add_option('--background', '-b', help='Background image', default = dir + "whitedemo.png")
   p.add_option('--log', '-l', help='Log file')
   p.add_option('--dotsize', '-d', help="Size of the dots to place on the heatmap", default=15)
   p.add_option('--every', '-e', help="Parse every X log entries", default = 1)
