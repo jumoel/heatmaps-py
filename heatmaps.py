@@ -7,12 +7,13 @@ import ImageChops
 import math
 from numpy import *
 import locale
+import sys
 
 import cProfile
 
 def main():
   p = optparse.OptionParser()
-  p.add_option('--background', '-b', help='Background image', default = "whitedemo.png")
+  p.add_option('--background', '-b', help='Background image', default = sys.path[0] + "\\whitedemo.png")
   p.add_option('--log', '-l', help='Log file')
   p.add_option('--dotsize', '-d', help="Size of the dots to place on the heatmap", default=15)
   p.add_option('--every', '-e', help="Parse every X log entries", default = 1)
@@ -29,8 +30,8 @@ def main():
     print "Log file \"" + options.log + "\" not found."
     exit(-1)
     
-  if not options.background == "whitedemo.png" and os.path.exists(options.background):
-    print "Background image \"" + options.log + "\" not found."
+  if (not options.background == "whitedemo.png") and os.path.exists(options.background):
+    print "Background image \"" + options.background + "\" not found."
     exit(-1)
 
   locale.setlocale(locale.LC_ALL, '')
@@ -108,7 +109,7 @@ def gendot(size, minvalue):
   return img
 
 def gendeathdot(dotsize):
-  img = Image.open("skull.png")
+  img = Image.open(sys.path[0] + "\\skull.png")
 
   return img.resize((dotsize, dotsize))
 
