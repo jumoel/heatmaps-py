@@ -6,6 +6,7 @@ import Image # http://www.pythonware.com/products/pil/
 import ImageChops
 import math
 from numpy import *
+import locale
 
 import cProfile
 
@@ -31,9 +32,11 @@ def main():
     print "Background image \"" + options.log + "\" not found."
     exit(-1)
 
+  locale.setlocale(locale.LC_ALL, '')
+
   heatmap(options.log, options.background, int(options.dotsize), int(options.every), int(options.dotmin))
 
-def lerp(a, b, t):
+def lerp(t, a, b):
   return a + (b - a) * t
 
 def clamp(x, xmin, xmax):
@@ -47,19 +50,19 @@ def clamp(x, xmin, xmax):
 def parselog(logfile):
   f = open(logfile)
 
-  xmin = float(f.readline().split(":")[1])
-  ymin = float(f.readline().split(":")[1])
-  zmin = float(f.readline().split(":")[1])
-  xmax = float(f.readline().split(":")[1])
-  ymax = float(f.readline().split(":")[1])
-  zmax = float(f.readline().split(":")[1])
+  xmin = locale.atof(f.readline().split(":")[1])
+  ymin = locale.atof(f.readline().split(":")[1])
+  zmin = locale.atof(f.readline().split(":")[1])
+  xmax = locale.atof(f.readline().split(":")[1])
+  ymax = locale.atof(f.readline().split(":")[1])
+  zmax = locale.atof(f.readline().split(":")[1])
 
   f.readline() # Not used except by puny humans
 
   coords = []
   for line in f:
     splits = line.split(" , ")
-    coords.append(tuple(map(float, splits)))
+    coords.append(tuple(map(locale.atof, splits)))
 
   parsed = { "xmin": xmin,
              "xmax": xmax,
@@ -92,7 +95,7 @@ def gendot(size, minvalue):
 
       dist = clamp(math.sqrt(xx**2 + yy**2), 0, maxdist)
       
-      rgb = int(clamp(round(smooth(dist/(size/2)) * 255), minvalue, 255))
+      rgb = int(lerp(smooth(dist/(size/2)), minvalue, 255))
 
       img.putpixel((x, y), (rgb, rgb, rgb))
 
@@ -115,7 +118,7 @@ def heatmap(logfile, background, dotsize, every, minvalue):
   heatimage = Image.new("RGBA", image.size, "white")
   dot = gendot(dotsize, minvalue)
   tmptmp = Image.new("RGBA", image.size, "white")
-  #heatarr = asarray(heatimage).astype("float")
+  #heatarr = asarray(heatimage).astype("locale.atof")
 
   i = 1
 
@@ -134,7 +137,7 @@ def heatmap(logfile, background, dotsize, every, minvalue):
 
     i = (i + 1) % every
 
-    #temparr = asarray(tempimg).astype("float")
+    #temparr = asarray(tempimg).astype("locale.atof")
     
     #heatimage = ImageChops.multiply(heatimage, tempimg)
     #heatarr = heatarr + temparr;
