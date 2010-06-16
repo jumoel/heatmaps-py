@@ -10,6 +10,8 @@ import locale
 
 import cProfile
 
+dir = ""
+
 def main():
   dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -110,7 +112,7 @@ def gendot(size, minvalue):
   return img
 
 def gendeathdot(dotsize):
-  img = Image.open(sys.path[0] + "\\skull.png")
+  img = Image.open(dir + "\\skull.png")
 
   return img.resize((dotsize, dotsize))
 
