@@ -15,7 +15,7 @@ def main():
   p.add_option('--background', '-b', help='Background image')
   p.add_option('--log', '-l', help='Log file')
   p.add_option('--dotsize', '-d', help="Size of the dots to place on the heatmap", default=15)
-  p.add_option('--every', '-e', help="Parse every X log entries", default = 100)
+  p.add_option('--every', '-e', help="Parse every X log entries", default = 1)
   p.add_option('--dotmin', '-n', help="The minimum value for the dot color", default = 0)
   options, arguments = p.parse_args()
 
